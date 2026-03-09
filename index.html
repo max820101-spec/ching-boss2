@@ -18,15 +18,14 @@ background-size:cover;
 background-position:center;
 background-attachment:fixed;
 color:#e8f6ff;
-max-width:1200px;
+max-width:1100px;
 margin:auto;
 padding:15px;
 }
 
 .logo{
-width:480px;
+width:450px;
 max-width:95%;
-height:auto;
 filter: drop-shadow(0 0 20px rgba(0,200,255,0.8));
 }
 
@@ -70,17 +69,6 @@ align-items:center;
 gap:8px;
 flex-wrap:wrap;
 }
-
-.channel{
-font-size:22px;
-font-weight:bold;
-}
-
-.rank1{background:#ff5a5a}
-.rank2{background:#b06ad6}
-.rank3{background:#5aa2ff}
-.rank4{background:#57c96f}
-.rank5{background:#ffe36a;color:#000}
 
 </style>
 </head>
@@ -131,6 +119,9 @@ appId:"1:437580339649:web:3a3a47c0d886408574f740"
 firebase.initializeApp(firebaseConfig)
 const db=firebase.firestore()
 
+const confirmedDiv=document.getElementById("confirmed")
+const needDiv=document.getElementById("need")
+
 function nowTW(){
 return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Taipei"}))
 }
@@ -140,7 +131,7 @@ return t.toTimeString().slice(0,5)
 }
 
 setInterval(()=>{
-clock.innerText="台灣時間 "+fmt(nowTW())
+document.getElementById("clock").innerText="台灣時間 "+fmt(nowTW())
 },1000)
 
 document.getElementById("input").addEventListener("keydown",e=>{
@@ -159,7 +150,7 @@ return nowTW().getTime()+min*60000
 
 function submit(){
 
-let raw=input.value.trim()
+let raw=document.getElementById("input").value.trim()
 let arr=raw.split(/\s+/)
 
 for(let i=0;i<arr.length;i+=2){
@@ -169,18 +160,7 @@ let arg=arr[i+1]
 
 if(!ch||!arg)continue
 
-if(arg==="K"){
-
-db.collection("bosses").doc(ch).set({
-ch:ch,
-type:"confirmed",
-time:randomRespawn()
-},{merge:true})
-
-continue
-}
-
-if(arg==="R"){
+if(arg==="K"||arg==="R"){
 
 db.collection("bosses").doc(ch).set({
 ch:ch,
@@ -218,14 +198,13 @@ time:t
 
 }
 
-input.value=""
+document.getElementById("input").value=""
 
 }
 
 function markKill(ch){
 
 db.collection("bosses").doc(ch).set({
-ch:ch,
 type:"confirmed",
 time:randomRespawn()
 },{merge:true})
@@ -235,7 +214,6 @@ time:randomRespawn()
 function markRob(ch){
 
 db.collection("bosses").doc(ch).set({
-ch:ch,
 type:"confirmed",
 time:randomRespawn()
 },{merge:true})
@@ -265,7 +243,7 @@ function copyConfirmed(){
 let txt=""
 
 document.querySelectorAll("#confirmed .card").forEach(c=>{
-let ch=c.querySelector(".channel").innerText
+let ch=c.querySelector(".ch").innerText
 let time=c.innerText.match(/\d{2}:\d{2}/)
 if(time)txt+=ch+" "+time[0]+"\n"
 })
@@ -279,7 +257,7 @@ function copyNeed(){
 let txt=""
 
 document.querySelectorAll("#need .card").forEach(c=>{
-let ch=c.querySelector(".channel").innerText
+let ch=c.querySelector(".ch").innerText
 txt+=ch+"\n"
 })
 
@@ -292,6 +270,7 @@ async function reset(){
 if(!confirm("確定清空?"))return
 
 let s=await db.collection("bosses").get()
+
 s.forEach(d=>d.ref.delete())
 
 }
@@ -308,9 +287,10 @@ if(d.type==="confirmed")confirmed.push(d)
 confirmed.sort((a,b)=>a.time-b.time)
 
 confirmedDiv.innerHTML=""
-count.innerText="目前頻道數："+confirmed.length
 
-confirmed.forEach((d,i)=>{
+document.getElementById("count").innerText="目前頻道數："+confirmed.length
+
+confirmed.forEach(d=>{
 
 let diff=Math.floor((d.time-nowTW().getTime())/60000)
 
@@ -328,7 +308,7 @@ confirmedDiv.innerHTML+=`
 
 <button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">⭐</button>
 
-<span class="channel">${starIcon(d.star||0)} ${d.ch}</span>
+<span class="ch">${starIcon(d.star||0)} ${d.ch}</span>
 
 ${text}
 
