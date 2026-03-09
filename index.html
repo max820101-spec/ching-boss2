@@ -3,54 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <title>檠檠BOSS團隊 v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <style>
+
 body{
 font-family:Arial;
-background:#111;
-color:#fff;
+background:
+linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),
+url("https://www.gq.com.tw/article/%E6%A5%93%E4%B9%8B%E8%B0%B7artale-%E7%82%BA%E4%BB%80%E9%BA%BC%E7%B4%85");
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+color:#e8f6ff;
+padding:15px;
 max-width:900px;
 margin:auto;
-padding:20px;
+min-height:100vh;
+}
+
+.logoWrap{text-align:center;margin-bottom:10px;}
+.logo{width:150px;}
+
+textarea{
+padding:10px;
+width:100%;
+border-radius:8px;
+border:1px solid rgba(255,255,255,0.2);
+background:rgba(0,40,70,0.6);
+color:#e8f6ff;
+margin-bottom:6px;
+}
+
+button{
+padding:6px 10px;
+margin:4px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
 }
 
 .card{
 margin:8px 0;
-padding:10px;
-background:#222;
-border-radius:10px;
+padding:12px;
+border-radius:12px;
+background:rgba(0,60,90,0.7);
 }
 
-.rank1{background:#ff2d2d}
-.rank2{background:#8e44ad}
-.rank3{background:#007bff}
-.rank4{background:#00c853}
-.rank5{background:#ffd600;color:#000}
+.rank1{background:#ff2d2d !important}
+.rank2{background:#8e44ad !important}
+.rank3{background:#007bff !important}
+.rank4{background:#00c853 !important}
+.rank5{background:#ffd600 !important;color:#000}
 
-.star{cursor:pointer;font-size:18px;margin-left:5px}
-
-textarea{
-width:100%;
-padding:8px;
-margin-top:5px;
+.star{
+cursor:pointer;
+font-size:18px;
+margin-left:6px;
 }
 
-button{
-margin-top:5px;
-padding:5px 10px;
+#clock{
+font-size:18px;
+text-align:center;
+margin-bottom:10px;
 }
+
 </style>
 </head>
 
 <body>
 
+<div class="logoWrap">
+<img src="./12454.png" class="logo">
 <h2>檠檠BOSS團隊 v2</h2>
+</div>
+
+<div id="clock"></div>
 
 <textarea id="input"></textarea>
-<br>
+
 <button onclick="submit()">送出</button>
 <button onclick="copy()">複製</button>
 <button onclick="reset()">Reset</button>
@@ -75,66 +110,64 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-function now(){
-return new Date().getTime()
+function nowTW(){
+return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Taipei"}));
 }
+
+function fmt(t){
+return t.toTimeString().slice(0,5);
+}
+
+setInterval(()=>{
+clock.innerText="台灣時間 "+fmt(nowTW());
+},1000);
+
+document.getElementById("input").addEventListener("keydown",e=>{
+if(e.key==="Enter" && !e.shiftKey){
+e.preventDefault();
+submit();
+}
+});
 
 function submit(){
 
-let txt=document.getElementById("input").value.trim()
-
-let arr=txt.split(/\s+/)
+let raw=input.value.trim();
+let arr=raw.split(/\s+/);
 
 for(let i=0;i<arr.length;i+=2){
 
-let ch=arr[i]
-let arg=arr[i+1]
+let ch=arr[i];
+let arg=arr[i+1];
 
-if(!ch||!arg)continue
+if(!ch||!arg)continue;
 
-if(arg=="K"){
-
-db.collection("boss").doc(ch).set({
-ch,
-type:"need",
-status:"kill",
-time:now()
-})
-
-continue
+if(arg==="K"){
+db.collection("boss").doc(ch).set({ch,type:"need",status:"kill",time:nowTW().getTime()});
+continue;
 }
 
-if(arg=="R"){
-
-db.collection("boss").doc(ch).set({
-ch,
-type:"need",
-status:"rob",
-time:now()
-})
-
-continue
+if(arg==="R"){
+db.collection("boss").doc(ch).set({ch,type:"need",status:"rob",time:nowTW().getTime()});
+continue;
 }
 
-let t
+let t;
 
-if(arg.length==4){
+if(arg.length===4){
 
-let h=parseInt(arg.slice(0,2))
-let m=parseInt(arg.slice(2))
+let h=parseInt(arg.slice(0,2));
+let m=parseInt(arg.slice(2));
 
-let d=new Date()
+let d=nowTW();
+d.setHours(h);
+d.setMinutes(m);
 
-d.setHours(h)
-d.setMinutes(m)
-
-t=d.getTime()
+t=d.getTime();
 
 }else{
 
-let min=parseInt(arg)
-
-t=now()+min*60000
+let min=parseInt(arg);
+t=nowTW().getTime()+min*60000;
 
 }
 
@@ -143,104 +176,92 @@ ch,
 type:"confirmed",
 time:t,
 star:0
-})
+});
 
 }
 
-document.getElementById("input").value=""
-
+input.value="";
 }
 
 function setStar(ch,n){
-
-let next=(n+1)%5
-
-db.collection("boss").doc(ch).update({
-star:next
-})
-
+let next=(n+1)%5;
+db.collection("boss").doc(ch).update({star:next});
 }
 
 function copy(){
 
-let txt=""
+let text="";
 
 document.querySelectorAll("#confirmed .card").forEach(c=>{
+text+=c.innerText+"\n";
+});
 
-txt+=c.innerText+"\n"
-
-})
-
-navigator.clipboard.writeText(txt)
+navigator.clipboard.writeText(text);
+alert("已複製");
 
 }
 
 async function reset(){
 
-let s=await db.collection("boss").get()
+if(!confirm("確定重置全部?"))return;
 
-s.forEach(d=>d.ref.delete())
+let s=await db.collection("boss").get();
+s.forEach(d=>d.ref.delete());
 
 }
 
 db.collection("boss").onSnapshot(s=>{
 
-let confirmed=[]
-let need=[]
+let confirmed=[];
+let need=[];
 
 s.forEach(d=>{
+let v=d.data();
+if(v.type==="confirmed")confirmed.push(v);
+else need.push(v);
+});
 
-let v=d.data()
+confirmed.sort((a,b)=>a.time-b.time);
 
-if(v.type=="confirmed")confirmed.push(v)
-else need.push(v)
-
-})
-
-confirmed.sort((a,b)=>a.time-b.time)
-
-confirmedDiv.innerHTML=""
-needDiv.innerHTML=""
+confirmed.innerHTML="";
+need.innerHTML="";
 
 confirmed.forEach((d,i)=>{
 
-let cls=""
+let cls="";
+if(i===0)cls="rank1";
+else if(i===1)cls="rank2";
+else if(i===2)cls="rank3";
+else if(i===3)cls="rank4";
+else if(i===4)cls="rank5";
 
-if(i==0)cls="rank1"
-else if(i==1)cls="rank2"
-else if(i==2)cls="rank3"
-else if(i==3)cls="rank4"
-else if(i==4)cls="rank5"
+let diff=Math.floor((d.time-nowTW().getTime())/60000);
 
-let diff=Math.floor((d.time-now())/60000)
+let text=d.ch+" "+fmt(new Date(d.time));
 
-let txt=d.ch
+if(diff<=0)text+=" ⚔️重生";
+else if(diff<=5)text+=" 剩"+diff+"分";
 
-if(diff<=0)txt+=" ⚔️重生"
-else if(diff<=5)txt+=" "+diff+"分"
-
-confirmedDiv.innerHTML+=`
+confirmed.innerHTML+=`
 <div class="card ${cls}">
-${txt}
+${text}
 <span class="star" onclick="setStar('${d.ch}',${d.star||0})">⭐</span>
-</div>
-`
+</div>`;
 
-})
+});
 
 need.forEach(d=>{
 
-let t=d.status=="rob"?"⚠️被搶":"🔥擊殺"
+let t=d.status==="rob"?"⚠️被搶":"🔥擊殺";
 
-needDiv.innerHTML+=`
+need.innerHTML+=`
 <div class="card">
 ${d.ch} ${t}
-</div>
-`
+</div>`;
 
-})
+});
 
-})
+});
 
 </script>
 
