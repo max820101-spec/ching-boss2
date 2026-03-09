@@ -18,20 +18,48 @@ padding:20px;
 }
 
 .card{
-margin:10px 0;
+margin:8px 0;
 padding:10px;
 background:#222;
 border-radius:10px;
 }
-</style>
 
+.rank1{background:#ff2d2d}
+.rank2{background:#8e44ad}
+.rank3{background:#007bff}
+.rank4{background:#00c853}
+.rank5{background:#ffd600;color:#000}
+
+.star{cursor:pointer;font-size:18px;margin-left:5px}
+
+textarea{
+width:100%;
+padding:8px;
+margin-top:5px;
+}
+
+button{
+margin-top:5px;
+padding:5px 10px;
+}
+</style>
 </head>
 
 <body>
 
 <h2>檠檠BOSS團隊 v2</h2>
 
+<textarea id="input"></textarea>
+<br>
+<button onclick="submit()">送出</button>
+<button onclick="copy()">複製</button>
+<button onclick="reset()">Reset</button>
+
+<h3>已確認</h3>
 <div id="confirmed"></div>
+
+<h3>未確認</h3>
+<div id="need"></div>
 
 <script>
 
@@ -47,17 +75,166 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-db.collection("bosses").onSnapshot(s=>{
+function now(){
+return new Date().getTime()
+}
 
-confirmed.innerHTML=""
+function submit(){
 
-s.forEach(doc=>{
+let txt=document.getElementById("input").value.trim()
 
-let d=doc.data()
+let arr=txt.split(/\s+/)
 
-confirmed.innerHTML+=`
+for(let i=0;i<arr.length;i+=2){
+
+let ch=arr[i]
+let arg=arr[i+1]
+
+if(!ch||!arg)continue
+
+if(arg=="K"){
+
+db.collection("boss").doc(ch).set({
+ch,
+type:"need",
+status:"kill",
+time:now()
+})
+
+continue
+}
+
+if(arg=="R"){
+
+db.collection("boss").doc(ch).set({
+ch,
+type:"need",
+status:"rob",
+time:now()
+})
+
+continue
+}
+
+let t
+
+if(arg.length==4){
+
+let h=parseInt(arg.slice(0,2))
+let m=parseInt(arg.slice(2))
+
+let d=new Date()
+
+d.setHours(h)
+d.setMinutes(m)
+
+t=d.getTime()
+
+}else{
+
+let min=parseInt(arg)
+
+t=now()+min*60000
+
+}
+
+db.collection("boss").doc(ch).set({
+ch,
+type:"confirmed",
+time:t,
+star:0
+})
+
+}
+
+document.getElementById("input").value=""
+
+}
+
+function setStar(ch,n){
+
+let next=(n+1)%5
+
+db.collection("boss").doc(ch).update({
+star:next
+})
+
+}
+
+function copy(){
+
+let txt=""
+
+document.querySelectorAll("#confirmed .card").forEach(c=>{
+
+txt+=c.innerText+"\n"
+
+})
+
+navigator.clipboard.writeText(txt)
+
+}
+
+async function reset(){
+
+let s=await db.collection("boss").get()
+
+s.forEach(d=>d.ref.delete())
+
+}
+
+db.collection("boss").onSnapshot(s=>{
+
+let confirmed=[]
+let need=[]
+
+s.forEach(d=>{
+
+let v=d.data()
+
+if(v.type=="confirmed")confirmed.push(v)
+else need.push(v)
+
+})
+
+confirmed.sort((a,b)=>a.time-b.time)
+
+confirmedDiv.innerHTML=""
+needDiv.innerHTML=""
+
+confirmed.forEach((d,i)=>{
+
+let cls=""
+
+if(i==0)cls="rank1"
+else if(i==1)cls="rank2"
+else if(i==2)cls="rank3"
+else if(i==3)cls="rank4"
+else if(i==4)cls="rank5"
+
+let diff=Math.floor((d.time-now())/60000)
+
+let txt=d.ch
+
+if(diff<=0)txt+=" ⚔️重生"
+else if(diff<=5)txt+=" "+diff+"分"
+
+confirmedDiv.innerHTML+=`
+<div class="card ${cls}">
+${txt}
+<span class="star" onclick="setStar('${d.ch}',${d.star||0})">⭐</span>
+</div>
+`
+
+})
+
+need.forEach(d=>{
+
+let t=d.status=="rob"?"⚠️被搶":"🔥擊殺"
+
+needDiv.innerHTML+=`
 <div class="card">
-${d.ch}
+${d.ch} ${t}
 </div>
 `
 
