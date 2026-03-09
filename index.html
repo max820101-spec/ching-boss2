@@ -18,37 +18,84 @@ background-size:cover;
 background-position:center;
 background-attachment:fixed;
 color:#e8f6ff;
-max-width:900px;
+max-width:1200px;
 margin:auto;
 padding:15px;
 }
 
-.logo{width:260px}
+/* LOGO */
+
+.logo{
+width:460px;
+max-width:95%;
+height:auto;
+filter: drop-shadow(0 0 18px rgba(0,200,255,0.8));
+}
+
+/* 輸入 */
 
 textarea{
 width:100%;
 padding:10px;
 border-radius:8px;
+margin-top:5px;
 }
+
+/* 按鈕 */
 
 button{
 border:none;
-border-radius:6px;
-padding:5px 10px;
-margin:2px;
+border-radius:8px;
+padding:6px 12px;
+margin:3px;
 cursor:pointer;
+font-weight:bold;
+font-size:13px;
+transition:0.15s;
+}
+
+button:hover{
+transform:scale(1.05);
+opacity:0.9;
+}
+
+.btnKill{background:#ffb97a;color:#4a2a00}
+.btnRob{background:#ff9a9a;color:#4a0000}
+.btnStar{background:#ffe08a;color:#333}
+.btnDel{background:#cfcfcf;color:#333}
+
+/* 左右欄 */
+
+.container{
+display:flex;
+gap:20px;
+}
+
+.column{
+flex:1;
+}
+
+/* 卡片 */
+
+.card{
+background:rgba(0,60,90,0.78);
+padding:12px 14px;
+margin:8px 0;
+border-radius:12px;
+display:flex;
+align-items:center;
+gap:8px;
+flex-wrap:wrap;
+}
+
+/* 頻道大字 */
+
+.channel{
+font-size:22px;
 font-weight:bold;
 }
 
-.card{
-background:rgba(0,60,90,0.75);
-padding:10px;
-margin:6px 0;
-border-radius:10px;
-display:flex;
-align-items:center;
-gap:6px;
-}
+/* 排名色 */
 
 .rank1{background:#ff5a5a}
 .rank2{background:#b06ad6}
@@ -56,12 +103,23 @@ gap:6px;
 .rank4{background:#57c96f}
 .rank5{background:#ffe36a;color:#000}
 
-.btnKill{background:#ffb347;color:#000}
-.btnRob{background:#ff7a7a;color:#000}
-.btnStar{background:#ffd86b;color:#000}
-.btnDel{background:#c7c7c7;color:#000}
+.star{
+font-size:20px;
+}
 
-#clock{font-size:18px;text-align:center;margin-bottom:10px}
+/* 手機 */
+
+@media (max-width:700px){
+
+.container{
+flex-direction:column;
+}
+
+.logo{
+width:320px;
+}
+
+}
 
 </style>
 </head>
@@ -78,16 +136,29 @@ gap:6px;
 <textarea id="input"></textarea>
 
 <button onclick="submit()">送出</button>
-<button onclick="copy()">複製</button>
+<button onclick="copyConfirmed()">複製已確認</button>
+<button onclick="copyNeed()">複製未確認</button>
 <button onclick="reset()">Reset</button>
 
 <h3 id="count"></h3>
 
+<div class="container">
+
+<div class="column">
+
 <h3>已確認</h3>
 <div id="confirmed"></div>
 
+</div>
+
+<div class="column">
+
 <h3>未確認</h3>
 <div id="need"></div>
+
+</div>
+
+</div>
 
 <script>
 
@@ -194,14 +265,27 @@ function starIcon(n){
 return ["","⭐","🟢","🔵","🟣","🔴"][n]
 }
 
-function copy(){
+function copyConfirmed(){
 
 let txt=""
 
 document.querySelectorAll("#confirmed .card").forEach(c=>{
-let ch=c.querySelector("b").innerText
+let ch=c.querySelector(".channel").innerText
 let time=c.innerText.match(/\d{2}:\d{2}/)
 if(time)txt+=ch+" "+time[0]+"\n"
+})
+
+navigator.clipboard.writeText(txt)
+
+}
+
+function copyNeed(){
+
+let txt=""
+
+document.querySelectorAll("#need .card").forEach(c=>{
+let ch=c.querySelector(".channel").innerText
+txt+=ch+"\n"
 })
 
 navigator.clipboard.writeText(txt)
@@ -256,21 +340,23 @@ else if(diff===0)text+=" ⚔️重生"
 else if(diff<=5)text+=" 剩"+diff+"分"
 
 confirmedDiv.innerHTML+=`
+
 <div class="card ${cls}">
 
 <button class="btnDel" onclick="remove('${d.ch}')">❌</button>
 
-<button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">
-⭐標記
-</button>
+<button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">⭐標記</button>
 
-<b>${starIcon(d.star||0)} ${d.ch}</b> ${text}
+<span class="channel">${starIcon(d.star||0)} ${d.ch}</span>
+
+${text}
 
 <button class="btnKill" onclick="markKill('${d.ch}')">🔥擊殺</button>
 
 <button class="btnRob" onclick="markRob('${d.ch}')">⚠️被搶</button>
 
-</div>`
+</div>
+`
 })
 
 need.forEach(d=>{
@@ -278,14 +364,17 @@ need.forEach(d=>{
 let label=d.status==="rob"?"⚠️被搶":"🔥擊殺"
 
 needDiv.innerHTML+=`
+
 <div class="card">
 
 <button class="btnDel" onclick="remove('${d.ch}')">❌</button>
 
-<b>${d.ch}</b> ${label}
+<span class="channel">${d.ch}</span>
 
-</div>`
+${label}
 
+</div>
+`
 })
 
 })
