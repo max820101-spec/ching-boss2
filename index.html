@@ -18,16 +18,18 @@ background-size:cover;
 background-position:center;
 background-attachment:fixed;
 color:#e8f6ff;
-max-width:1100px;
+max-width:1200px;
 margin:auto;
 padding:15px;
 }
 
 .logo{
-width:450px;
+width:480px;
 max-width:95%;
-filter: drop-shadow(0 0 20px rgba(0,200,255,0.8));
+filter: drop-shadow(0 0 18px rgba(0,200,255,0.8));
 }
+
+/* 輸入 */
 
 textarea{
 width:100%;
@@ -35,6 +37,8 @@ padding:10px;
 border-radius:8px;
 margin-top:5px;
 }
+
+/* 按鈕 */
 
 button{
 border:none;
@@ -50,6 +54,8 @@ font-weight:bold;
 .btnStar{background:#ffe08a;color:#333}
 .btnDel{background:#cfcfcf;color:#333}
 
+/* 左右欄 */
+
 .container{
 display:flex;
 gap:20px;
@@ -59,16 +65,41 @@ gap:20px;
 flex:1;
 }
 
+/* 卡片 */
+
 .card{
-background:rgba(0,60,90,0.78);
+background:rgba(0,60,90,0.8);
 padding:12px;
 margin:8px 0;
 border-radius:12px;
 display:flex;
 align-items:center;
-gap:8px;
+gap:10px;
 flex-wrap:wrap;
 }
+
+/* 頻道字 */
+
+.channel{
+font-size:26px;
+font-weight:900;
+letter-spacing:1px;
+}
+
+/* 時間 */
+
+.time{
+font-size:16px;
+opacity:0.9;
+}
+
+/* 前5名 */
+
+.rank1{background:#ff6b6b}
+.rank2{background:#c77dff}
+.rank3{background:#74c0fc}
+.rank4{background:#69db7c}
+.rank5{background:#ffd43b;color:#000}
 
 </style>
 </head>
@@ -141,13 +172,6 @@ submit()
 }
 })
 
-function randomRespawn(){
-
-let min=24+Math.floor(Math.random()*7)
-return nowTW().getTime()+min*60000
-
-}
-
 function submit(){
 
 let raw=document.getElementById("input").value.trim()
@@ -160,14 +184,23 @@ let arg=arr[i+1]
 
 if(!ch||!arg)continue
 
-if(arg==="K"||arg==="R"){
-
+if(arg==="K"){
 db.collection("bosses").doc(ch).set({
 ch:ch,
-type:"confirmed",
-time:randomRespawn()
+type:"need",
+status:"kill",
+time:nowTW().getTime()
 },{merge:true})
+continue
+}
 
+if(arg==="R"){
+db.collection("bosses").doc(ch).set({
+ch:ch,
+type:"need",
+status:"rob",
+time:nowTW().getTime()
+},{merge:true})
 continue
 }
 
@@ -205,8 +238,10 @@ document.getElementById("input").value=""
 function markKill(ch){
 
 db.collection("bosses").doc(ch).set({
-type:"confirmed",
-time:randomRespawn()
+ch:ch,
+type:"need",
+status:"kill",
+time:nowTW().getTime()
 },{merge:true})
 
 }
@@ -214,8 +249,10 @@ time:randomRespawn()
 function markRob(ch){
 
 db.collection("bosses").doc(ch).set({
-type:"confirmed",
-time:randomRespawn()
+ch:ch,
+type:"need",
+status:"rob",
+time:nowTW().getTime()
 },{merge:true})
 
 }
@@ -243,9 +280,9 @@ function copyConfirmed(){
 let txt=""
 
 document.querySelectorAll("#confirmed .card").forEach(c=>{
-let ch=c.querySelector(".ch").innerText
-let time=c.innerText.match(/\d{2}:\d{2}/)
-if(time)txt+=ch+" "+time[0]+"\n"
+let ch=c.querySelector(".channel").innerText
+let time=c.querySelector(".time").innerText
+txt+=ch+" "+time+"\n"
 })
 
 navigator.clipboard.writeText(txt)
@@ -257,7 +294,7 @@ function copyNeed(){
 let txt=""
 
 document.querySelectorAll("#need .card").forEach(c=>{
-let ch=c.querySelector(".ch").innerText
+let ch=c.querySelector(".channel").innerText
 txt+=ch+"\n"
 })
 
@@ -278,19 +315,31 @@ s.forEach(d=>d.ref.delete())
 db.collection("bosses").onSnapshot(s=>{
 
 let confirmed=[]
+let need=[]
 
 s.forEach(doc=>{
 let d=doc.data()
+
 if(d.type==="confirmed")confirmed.push(d)
+if(d.type==="need")need.push(d)
+
 })
 
 confirmed.sort((a,b)=>a.time-b.time)
 
 confirmedDiv.innerHTML=""
+needDiv.innerHTML=""
 
 document.getElementById("count").innerText="目前頻道數："+confirmed.length
 
-confirmed.forEach(d=>{
+confirmed.forEach((d,i)=>{
+
+let rank=""
+if(i===0)rank="rank1"
+else if(i===1)rank="rank2"
+else if(i===2)rank="rank3"
+else if(i===3)rank="rank4"
+else if(i===4)rank="rank5"
 
 let diff=Math.floor((d.time-nowTW().getTime())/60000)
 
@@ -302,19 +351,37 @@ else if(diff<=5)text+=" 剩"+diff+"分"
 
 confirmedDiv.innerHTML+=`
 
-<div class="card">
+<div class="card ${rank}">
 
 <button class="btnDel" onclick="remove('${d.ch}')">❌</button>
 
 <button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">⭐</button>
 
-<span class="ch">${starIcon(d.star||0)} ${d.ch}</span>
+<span class="channel">${starIcon(d.star||0)} ${d.ch}</span>
 
-${text}
+<span class="time">${text}</span>
 
 <button class="btnKill" onclick="markKill('${d.ch}')">🔥擊殺</button>
 
 <button class="btnRob" onclick="markRob('${d.ch}')">⚠️被搶</button>
+
+</div>
+`
+})
+
+need.forEach(d=>{
+
+let label=d.status==="rob"?"⚠️被搶":"🔥擊殺"
+
+needDiv.innerHTML+=`
+
+<div class="card">
+
+<button class="btnDel" onclick="remove('${d.ch}')">❌</button>
+
+<span class="channel">${starIcon(d.star||0)} ${d.ch}</span>
+
+${label}
 
 </div>
 `
