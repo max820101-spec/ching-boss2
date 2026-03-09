@@ -30,7 +30,12 @@ height:auto;
 filter: drop-shadow(0 0 20px rgba(0,200,255,0.8));
 }
 
-/* 按鈕 */
+textarea{
+width:100%;
+padding:10px;
+border-radius:8px;
+margin-top:5px;
+}
 
 button{
 border:none;
@@ -39,30 +44,12 @@ padding:6px 12px;
 margin:3px;
 cursor:pointer;
 font-weight:bold;
-font-size:13px;
-transition:0.15s;
-}
-
-button:hover{
-transform:scale(1.05);
-opacity:0.9;
 }
 
 .btnKill{background:#ffb97a;color:#4a2a00}
 .btnRob{background:#ff9a9a;color:#4a0000}
 .btnStar{background:#ffe08a;color:#333}
 .btnDel{background:#cfcfcf;color:#333}
-
-/* 輸入 */
-
-textarea{
-width:100%;
-padding:10px;
-border-radius:8px;
-margin-top:5px;
-}
-
-/* 左右欄 */
 
 .container{
 display:flex;
@@ -73,11 +60,9 @@ gap:20px;
 flex:1;
 }
 
-/* 卡片 */
-
 .card{
 background:rgba(0,60,90,0.78);
-padding:12px 14px;
+padding:12px;
 margin:8px 0;
 border-radius:12px;
 display:flex;
@@ -86,40 +71,16 @@ gap:8px;
 flex-wrap:wrap;
 }
 
-/* 頻道 */
-
 .channel{
 font-size:22px;
 font-weight:bold;
 }
-
-/* 排名 */
 
 .rank1{background:#ff5a5a}
 .rank2{background:#b06ad6}
 .rank3{background:#5aa2ff}
 .rank4{background:#57c96f}
 .rank5{background:#ffe36a;color:#000}
-
-/* 星號 */
-
-.star{
-font-size:20px;
-}
-
-/* 手機 */
-
-@media (max-width:700px){
-
-.container{
-flex-direction:column;
-}
-
-.logo{
-width:320px;
-}
-
-}
 
 </style>
 </head>
@@ -145,17 +106,13 @@ width:320px;
 <div class="container">
 
 <div class="column">
-
 <h3>已確認</h3>
 <div id="confirmed"></div>
-
 </div>
 
 <div class="column">
-
 <h3>未確認</h3>
 <div id="need"></div>
-
 </div>
 
 </div>
@@ -173,9 +130,6 @@ appId:"1:437580339649:web:3a3a47c0d886408574f740"
 
 firebase.initializeApp(firebaseConfig)
 const db=firebase.firestore()
-
-const confirmedDiv=document.getElementById("confirmed")
-const needDiv=document.getElementById("need")
 
 function nowTW(){
 return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Taipei"}))
@@ -196,6 +150,13 @@ submit()
 }
 })
 
+function randomRespawn(){
+
+let min=24+Math.floor(Math.random()*7)
+return nowTW().getTime()+min*60000
+
+}
+
 function submit(){
 
 let raw=input.value.trim()
@@ -211,9 +172,9 @@ if(!ch||!arg)continue
 if(arg==="K"){
 
 db.collection("bosses").doc(ch).set({
-type:"need",
-status:"kill",
-time:nowTW().getTime()
+ch:ch,
+type:"confirmed",
+time:randomRespawn()
 },{merge:true})
 
 continue
@@ -222,9 +183,9 @@ continue
 if(arg==="R"){
 
 db.collection("bosses").doc(ch).set({
-type:"need",
-status:"rob",
-time:nowTW().getTime()
+ch:ch,
+type:"confirmed",
+time:randomRespawn()
 },{merge:true})
 
 continue
@@ -250,6 +211,7 @@ t=nowTW().getTime()+parseInt(arg)*60000
 }
 
 db.collection("bosses").doc(ch).set({
+ch:ch,
 type:"confirmed",
 time:t
 },{merge:true})
@@ -257,14 +219,15 @@ time:t
 }
 
 input.value=""
+
 }
 
 function markKill(ch){
 
 db.collection("bosses").doc(ch).set({
-type:"need",
-status:"kill",
-time:nowTW().getTime()
+ch:ch,
+type:"confirmed",
+time:randomRespawn()
 },{merge:true})
 
 }
@@ -272,9 +235,9 @@ time:nowTW().getTime()
 function markRob(ch){
 
 db.collection("bosses").doc(ch).set({
-type:"need",
-status:"rob",
-time:nowTW().getTime()
+ch:ch,
+type:"confirmed",
+time:randomRespawn()
 },{merge:true})
 
 }
@@ -329,7 +292,6 @@ async function reset(){
 if(!confirm("確定清空?"))return
 
 let s=await db.collection("bosses").get()
-
 s.forEach(d=>d.ref.delete())
 
 }
@@ -337,31 +299,18 @@ s.forEach(d=>d.ref.delete())
 db.collection("bosses").onSnapshot(s=>{
 
 let confirmed=[]
-let need=[]
 
 s.forEach(doc=>{
 let d=doc.data()
-
 if(d.type==="confirmed")confirmed.push(d)
-else need.push(d)
 })
 
 confirmed.sort((a,b)=>a.time-b.time)
-need.sort((a,b)=>b.time-a.time)
 
 confirmedDiv.innerHTML=""
-needDiv.innerHTML=""
-
 count.innerText="目前頻道數："+confirmed.length
 
 confirmed.forEach((d,i)=>{
-
-let cls=""
-if(i===0)cls="rank1"
-else if(i===1)cls="rank2"
-else if(i===2)cls="rank3"
-else if(i===3)cls="rank4"
-else if(i===4)cls="rank5"
 
 let diff=Math.floor((d.time-nowTW().getTime())/60000)
 
@@ -373,11 +322,11 @@ else if(diff<=5)text+=" 剩"+diff+"分"
 
 confirmedDiv.innerHTML+=`
 
-<div class="card ${cls}">
+<div class="card">
 
 <button class="btnDel" onclick="remove('${d.ch}')">❌</button>
 
-<button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">⭐標記</button>
+<button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">⭐</button>
 
 <span class="channel">${starIcon(d.star||0)} ${d.ch}</span>
 
@@ -386,24 +335,6 @@ ${text}
 <button class="btnKill" onclick="markKill('${d.ch}')">🔥擊殺</button>
 
 <button class="btnRob" onclick="markRob('${d.ch}')">⚠️被搶</button>
-
-</div>
-`
-})
-
-need.forEach(d=>{
-
-let label=d.status==="rob"?"⚠️被搶":"🔥擊殺"
-
-needDiv.innerHTML+=`
-
-<div class="card">
-
-<button class="btnDel" onclick="remove('${d.ch}')">❌</button>
-
-<span class="channel">${starIcon(d.star||0)} ${d.ch}</span>
-
-${label}
 
 </div>
 `
