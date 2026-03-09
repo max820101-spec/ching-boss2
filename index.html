@@ -2,8 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>檠檠BOSS團隊 v2</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>檠檠BOSS團隊</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -19,38 +18,33 @@ background-size:cover;
 background-position:center;
 background-attachment:fixed;
 color:#e8f6ff;
-padding:15px;
 max-width:900px;
 margin:auto;
-min-height:100vh;
+padding:15px;
 }
 
-.logoWrap{text-align:center;margin-bottom:10px;}
 .logo{width:260px}
 
 textarea{
-padding:10px;
 width:100%;
+padding:10px;
+margin-top:5px;
 border-radius:8px;
-border:1px solid rgba(255,255,255,0.2);
-background:rgba(0,40,70,0.6);
-color:#e8f6ff;
 }
 
 button{
-padding:6px 10px;
-margin:4px;
+margin:3px;
+padding:5px 10px;
 border:none;
-border-radius:8px;
+border-radius:6px;
 cursor:pointer;
-font-weight:bold;
 }
 
 .card{
-margin:8px 0;
-padding:12px;
-border-radius:12px;
 background:rgba(0,60,90,0.7);
+padding:10px;
+margin:6px 0;
+border-radius:10px;
 }
 
 .rank1{background:#ff2d2d}
@@ -59,28 +53,19 @@ background:rgba(0,60,90,0.7);
 .rank4{background:#00c853}
 .rank5{background:#ffd600;color:#000}
 
-.star{
-cursor:pointer;
-font-size:18px;
-margin-left:6px;
-}
+.star{cursor:pointer;font-size:18px}
 
-#clock{
-font-size:20px;
-text-align:center;
-margin-bottom:10px;
-font-weight:bold;
-}
+.del{background:#ff5252;color:white}
 
 </style>
 </head>
 
 <body>
 
-<div class="logoWrap">
+<center>
 <img src="./12454.png" class="logo">
-<h2>檠檠BOSS團隊 v2</h2>
-</div>
+<h2>檠檠BOSS團隊</h2>
+</center>
 
 <div id="clock"></div>
 
@@ -90,6 +75,8 @@ font-weight:bold;
 <button onclick="copy()">複製</button>
 <button onclick="reset()">Reset</button>
 
+<h3 id="count"></h3>
+
 <h3>已確認</h3>
 <div id="confirmed"></div>
 
@@ -98,172 +85,198 @@ font-weight:bold;
 
 <script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA...",
-  authDomain: "boss02-5f871.firebaseapp.com",
-  projectId: "boss02-5f871",
-  storageBucket: "boss02-5f871.firebasestorage.app",
-  messagingSenderId: "437580339649",
-  appId: "1:437580339649:web:3a3a47c0d886408574f740"
-};
+const firebaseConfig={
+apiKey:"AIzaSyA...",
+authDomain:"boss02-5f871.firebaseapp.com",
+projectId:"boss02-5f871",
+storageBucket:"boss02-5f871.firebasestorage.app",
+messagingSenderId:"437580339649",
+appId:"1:437580339649:web:3a3a47c0d886408574f740"
+}
 
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+firebase.initializeApp(firebaseConfig)
+const db=firebase.firestore()
 
-const confirmedDiv=document.getElementById("confirmed");
-const needDiv=document.getElementById("need");
+const confirmedDiv=document.getElementById("confirmed")
+const needDiv=document.getElementById("need")
 
 function nowTW(){
-return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Taipei"}));
+return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Taipei"}))
 }
 
 function fmt(t){
-return t.toTimeString().slice(0,5);
+return t.toTimeString().slice(0,5)
 }
 
 setInterval(()=>{
-clock.innerText="台灣時間 "+fmt(nowTW());
-},1000);
+clock.innerText="台灣時間 "+fmt(nowTW())
+},1000)
 
 document.getElementById("input").addEventListener("keydown",e=>{
-if(e.key==="Enter" && !e.shiftKey){
-e.preventDefault();
-submit();
+if(e.key==="Enter"&&!e.shiftKey){
+e.preventDefault()
+submit()
 }
-});
+})
 
 function submit(){
 
-let raw=input.value.trim();
-let arr=raw.split(/\s+/);
+let raw=input.value.trim()
+let arr=raw.split(/\s+/)
 
 for(let i=0;i<arr.length;i+=2){
 
-let ch=arr[i];
-let arg=arr[i+1];
+let ch=arr[i]
+let arg=arr[i+1]
 
-if(!ch||!arg)continue;
+if(!ch||!arg)continue
 
 if(arg==="K"){
-db.collection("bosses").doc(ch).set({ch,type:"need",status:"kill",time:nowTW().getTime()});
-continue;
+db.collection("bosses").doc(ch).set({ch,type:"need",status:"kill",time:nowTW().getTime()})
+continue
 }
 
 if(arg==="R"){
-db.collection("bosses").doc(ch).set({ch,type:"need",status:"rob",time:nowTW().getTime()});
-continue;
+db.collection("bosses").doc(ch).set({ch,type:"need",status:"rob",time:nowTW().getTime()})
+continue
 }
 
-let t;
+let t
 
 if(arg.length===4){
 
-let h=parseInt(arg.slice(0,2));
-let m=parseInt(arg.slice(2));
+let h=parseInt(arg.slice(0,2))
+let m=parseInt(arg.slice(2))
 
-let d=nowTW();
-d.setHours(h);
-d.setMinutes(m);
+let d=nowTW()
+d.setHours(h)
+d.setMinutes(m)
 
-t=d.getTime();
+t=d.getTime()
 
 }else{
 
-t=nowTW().getTime()+parseInt(arg)*60000;
+t=nowTW().getTime()+parseInt(arg)*60000
 
 }
 
-db.collection("bosses").doc(ch).set({
-ch,
-type:"confirmed",
-time:t,
-star:0
-});
+db.collection("bosses").doc(ch).set({ch,type:"confirmed",time:t,star:0})
 
 }
 
-input.value="";
+input.value=""
+}
+
+function markKill(ch){
+db.collection("bosses").doc(ch).set({ch,type:"need",status:"kill",time:nowTW().getTime()})
+}
+
+function markRob(ch){
+db.collection("bosses").doc(ch).set({ch,type:"need",status:"rob",time:nowTW().getTime()})
+}
+
+function remove(ch){
+db.collection("bosses").doc(ch).delete()
 }
 
 function setStar(ch,n){
-let next=(n+1)%5;
-db.collection("bosses").doc(ch).update({star:next});
+let next=(n+1)%6
+db.collection("bosses").doc(ch).update({star:next})
+}
+
+function starIcon(n){
+return ["","⭐","🟢","🔵","🟣","🔴"][n]
 }
 
 function copy(){
 
-let text="";
+let txt=""
 
 document.querySelectorAll("#confirmed .card").forEach(c=>{
-text+=c.innerText+"\n";
-});
+let ch=c.querySelector("b").innerText
+let time=c.innerText.match(/\d{2}:\d{2}/)
+if(time)txt+=ch+" "+time[0]+"\n"
+})
 
-navigator.clipboard.writeText(text);
-alert("已複製");
+navigator.clipboard.writeText(txt)
 
 }
 
 async function reset(){
 
-if(!confirm("確定重置全部?"))return;
+if(!confirm("確定清空?"))return
 
-let s=await db.collection("bosses").get();
-s.forEach(d=>d.ref.delete());
+let s=await db.collection("bosses").get()
+
+s.forEach(d=>d.ref.delete())
 
 }
 
 db.collection("bosses").onSnapshot(s=>{
 
-let confirmed=[];
-let need=[];
+let confirmed=[]
+let need=[]
 
-s.forEach(d=>{
-let v=d.data();
-if(v.type==="confirmed")confirmed.push(v);
-else need.push(v);
-});
+s.forEach(doc=>{
+let d=doc.data()
 
-confirmed.sort((a,b)=>a.time-b.time);
+if(d.type==="confirmed")confirmed.push(d)
+else need.push(d)
+})
 
-confirmedDiv.innerHTML="";
-needDiv.innerHTML="";
+confirmed.sort((a,b)=>a.time-b.time)
+need.sort((a,b)=>b.time-a.time)
+
+confirmedDiv.innerHTML=""
+needDiv.innerHTML=""
+
+count.innerText="目前頻道數："+confirmed.length
 
 confirmed.forEach((d,i)=>{
 
-let cls="";
-if(i===0)cls="rank1";
-else if(i===1)cls="rank2";
-else if(i===2)cls="rank3";
-else if(i===3)cls="rank4";
-else if(i===4)cls="rank5";
+let cls=""
+if(i===0)cls="rank1"
+else if(i===1)cls="rank2"
+else if(i===2)cls="rank3"
+else if(i===3)cls="rank4"
+else if(i===4)cls="rank5"
 
-let diff=Math.floor((d.time-nowTW().getTime())/60000);
+let diff=Math.floor((d.time-nowTW().getTime())/60000)
 
-let text=d.ch+" "+fmt(new Date(d.time));
+let text=fmt(new Date(d.time))
 
-if(diff<=0)text+=" ⚔️重生";
-else if(diff<=5)text+=" 剩"+diff+"分";
+if(diff<=-1)text+=" (遲)"
+else if(diff===0)text+=" ⚔️重生"
+else if(diff<=5)text+=" 剩"+diff+"分"
 
 confirmedDiv.innerHTML+=`
 <div class="card ${cls}">
-${text}
-<span class="star" onclick="setStar('${d.ch}',${d.star||0})">⭐</span>
-</div>`;
+<button class="del" onclick="remove('${d.ch}')">❌</button>
+<b>${d.ch}</b> ${text}
 
-});
+<button onclick="markKill('${d.ch}')">🔥</button>
+<button onclick="markRob('${d.ch}')">⚠️</button>
+
+<span class="star" onclick="setStar('${d.ch}',${d.star||0})">
+${starIcon(d.star||0)}
+</span>
+
+</div>`
+})
 
 need.forEach(d=>{
 
-let t=d.status==="rob"?"⚠️被搶":"🔥擊殺";
+let label=d.status==="rob"?"⚠️ 被搶":"🔥 擊殺"
 
 needDiv.innerHTML+=`
 <div class="card">
-${d.ch} ${t}
-</div>`;
+<button class="del" onclick="remove('${d.ch}')">❌</button>
+<b>${d.ch}</b> ${label}
+</div>`
 
-});
+})
 
-});
+})
 
 </script>
 
