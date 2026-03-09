@@ -28,34 +28,40 @@ padding:15px;
 textarea{
 width:100%;
 padding:10px;
-margin-top:5px;
 border-radius:8px;
 }
 
 button{
-margin:3px;
-padding:5px 10px;
 border:none;
 border-radius:6px;
+padding:5px 10px;
+margin:2px;
 cursor:pointer;
+font-weight:bold;
 }
 
 .card{
-background:rgba(0,60,90,0.7);
+background:rgba(0,60,90,0.75);
 padding:10px;
 margin:6px 0;
 border-radius:10px;
+display:flex;
+align-items:center;
+gap:6px;
 }
 
-.rank1{background:#ff2d2d}
-.rank2{background:#8e44ad}
-.rank3{background:#007bff}
-.rank4{background:#00c853}
-.rank5{background:#ffd600;color:#000}
+.rank1{background:#ff5a5a}
+.rank2{background:#b06ad6}
+.rank3{background:#5aa2ff}
+.rank4{background:#57c96f}
+.rank5{background:#ffe36a;color:#000}
 
-.star{cursor:pointer;font-size:18px}
+.btnKill{background:#ffb347;color:#000}
+.btnRob{background:#ff7a7a;color:#000}
+.btnStar{background:#ffd86b;color:#000}
+.btnDel{background:#c7c7c7;color:#000}
 
-.del{background:#ff5252;color:white}
+#clock{font-size:18px;text-align:center;margin-bottom:10px}
 
 </style>
 </head>
@@ -251,27 +257,33 @@ else if(diff<=5)text+=" 剩"+diff+"分"
 
 confirmedDiv.innerHTML+=`
 <div class="card ${cls}">
-<button class="del" onclick="remove('${d.ch}')">❌</button>
-<b>${d.ch}</b> ${text}
 
-<button onclick="markKill('${d.ch}')">🔥</button>
-<button onclick="markRob('${d.ch}')">⚠️</button>
+<button class="btnDel" onclick="remove('${d.ch}')">❌</button>
 
-<span class="star" onclick="setStar('${d.ch}',${d.star||0})">
-${starIcon(d.star||0)}
-</span>
+<button class="btnStar" onclick="setStar('${d.ch}',${d.star||0})">
+⭐標記
+</button>
+
+<b>${starIcon(d.star||0)} ${d.ch}</b> ${text}
+
+<button class="btnKill" onclick="markKill('${d.ch}')">🔥擊殺</button>
+
+<button class="btnRob" onclick="markRob('${d.ch}')">⚠️被搶</button>
 
 </div>`
 })
 
 need.forEach(d=>{
 
-let label=d.status==="rob"?"⚠️ 被搶":"🔥 擊殺"
+let label=d.status==="rob"?"⚠️被搶":"🔥擊殺"
 
 needDiv.innerHTML+=`
 <div class="card">
-<button class="del" onclick="remove('${d.ch}')">❌</button>
+
+<button class="btnDel" onclick="remove('${d.ch}')">❌</button>
+
 <b>${d.ch}</b> ${label}
+
 </div>`
 
 })
